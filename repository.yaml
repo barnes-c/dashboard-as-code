@@ -1,0 +1,21 @@
+apiVersion: provisioning.grafana.app/v0alpha1
+kind: Repository
+metadata:
+  name: dashboard-as-code
+spec:
+  title: Dashboards
+  type: github
+  github:
+    url: https://github.com/barnes-c/dashboard-as-code
+    branch: main
+    path: dashboards/
+  sync:
+    enabled: true
+    intervalSeconds: 60
+    target: folder
+  workflows: []
+  webhook:
+    disabled: true
+secure:
+  token:
+    create: ${GIT_PAT}
