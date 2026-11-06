@@ -11,7 +11,7 @@ spec:
     path: dashboards/
   sync:
     enabled: true
-    intervalSeconds: 60
+    intervalSeconds: 30
     target: folderless
   workflows:
     - write
