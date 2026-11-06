@@ -12,7 +12,7 @@ spec:
   sync:
     enabled: true
     intervalSeconds: 60
-    target: folder
+    target: folderless
   workflows: []
   webhook:
     disabled: true
