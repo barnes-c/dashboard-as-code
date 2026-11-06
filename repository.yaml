@@ -13,7 +13,8 @@ spec:
     enabled: true
     intervalSeconds: 60
     target: folderless
-  workflows: []
+  workflows:
+    - write
   webhook:
     disabled: true
 secure:
