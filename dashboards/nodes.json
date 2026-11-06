@@ -13,7 +13,7 @@
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations \u0026 Alerts",
+          "name": "Annotations & Alerts",
           "query": {
             "datasource": {
               "name": "-- Grafana --"
@@ -48,7 +48,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "time() - max by (node) (node_boot_time_seconds{node=~\"$node\"})",
+                        "expr": "time() - max by (node) (node_boot_time_seconds)",
                         "format": "table",
                         "instant": true
                       },
@@ -68,7 +68,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\", node=~\"$node\"}[5m])))",
+                        "expr": "100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))",
                         "format": "table",
                         "instant": true
                       },
@@ -88,7 +88,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_memory_MemAvailable_bytes{node=~\"$node\"}) / max by (node) (node_memory_MemTotal_bytes{node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_memory_MemAvailable_bytes) / max by (node) (node_memory_MemTotal_bytes))",
                         "format": "table",
                         "instant": true
                       },
@@ -108,7 +108,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var\", node=~\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var\", node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var\"}))",
                         "format": "table",
                         "instant": true
                       },
@@ -128,7 +128,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var/mnt/longhorn\", node=~\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var/mnt/longhorn\", node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var/mnt/longhorn\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var/mnt/longhorn\"}))",
                         "format": "table",
                         "instant": true
                       },
@@ -148,7 +148,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "max by (node) (node_thermal_zone_temp{type=\"cpu-thermal\", node=~\"$node\"})",
+                        "expr": "max by (node) (node_thermal_zone_temp{type=\"cpu-thermal\"})",
                         "format": "table",
                         "instant": true
                       },
@@ -199,10 +199,10 @@
               ]
             }
           },
-          "description": "Current values per node. CPU is averaged over 5 minutes; disk columns are space used.",
+          "description": "Current values for every node, regardless of the node picker. CPU is averaged over 5 minutes; disk columns are space used.",
           "id": 1,
           "links": [],
-          "title": "Nodes now - test",
+          "title": "All nodes",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -592,7 +592,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "max by (node) (node_hwmon_temp_celsius{chip=~\"nvme.*\", node=~\"$node\"})",
+                        "expr": "max by (node) (node_hwmon_temp_celsius{chip=~\"nvme.*\", node=\"$node\"})",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -773,7 +773,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "sum by (detected_level) (count_over_time({job=\"talos-kernel\", node=~\"$node\"} | json priority, facility, msg | priority=~\"$severity\" | facility=~\"$facility\" | line_format \"{{.node}}  {{ trim .msg }}\" |~ \"(?i)$search\" [$__auto]))",
+                        "expr": "sum by (detected_level) (count_over_time({job=\"talos-kernel\", node=\"$node\"} [$__auto]))",
                         "legendFormat": "{{detected_level}}",
                         "queryType": "range"
                       },
@@ -787,7 +787,7 @@
               "transformations": []
             }
           },
-          "description": "Kernel log lines per interval matching the filters above.",
+          "description": "Kernel log lines of the selected node per interval, by level.",
           "id": 12,
           "links": [],
           "title": "Log volume by level",
@@ -964,7 +964,7 @@
                       "group": "loki",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "{job=\"talos-kernel\", node=~\"$node\"} | json priority, facility, msg | priority=~\"$severity\" | facility=~\"$facility\" | line_format \"{{.node}}  {{ trim .msg }}\" |~ \"(?i)$search\"",
+                        "expr": "{job=\"talos-kernel\", node=\"$node\"} | json facility, priority, msg | line_format \"{{ trim .msg }}\"",
                         "queryType": "range"
                       },
                       "version": "v0"
@@ -977,7 +977,7 @@
               "transformations": []
             }
           },
-          "description": "dmesg of each node, shipped by Talos (KmsgLogConfig) via fluent-bit. Timestamps are arrival time; a boot backlog lands when it was delivered.",
+          "description": "dmesg of the selected node, shipped by Talos (KmsgLogConfig) via fluent-bit. Timestamps are arrival time; a boot backlog lands when it was delivered.",
           "id": 13,
           "links": [],
           "title": "Kernel log",
@@ -995,7 +995,7 @@
                 "enableLogDetails": true,
                 "prettifyLogMessage": false,
                 "showCommonLabels": false,
-                "showControls": false,
+                "showControls": true,
                 "showFieldSelector": false,
                 "showLabels": false,
                 "showLevel": true,
@@ -1029,7 +1029,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\", node=~\"$node\"}[$__rate_interval])))",
+                        "expr": "100 * (1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\", node=\"$node\"}[$__rate_interval])))",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -1212,7 +1212,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_memory_MemAvailable_bytes{node=~\"$node\"}) / max by (node) (node_memory_MemTotal_bytes{node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_memory_MemAvailable_bytes{node=\"$node\"}) / max by (node) (node_memory_MemTotal_bytes{node=\"$node\"}))",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -1395,7 +1395,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var\", node=~\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var\", node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var\", node=\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var\", node=\"$node\"}))",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -1578,7 +1578,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var/mnt/longhorn\", node=~\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var/mnt/longhorn\", node=~\"$node\"}))",
+                        "expr": "100 * (1 - max by (node) (node_filesystem_avail_bytes{mountpoint=\"/var/mnt/longhorn\", node=\"$node\"}) / max by (node) (node_filesystem_size_bytes{mountpoint=\"/var/mnt/longhorn\", node=\"$node\"}))",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -1761,7 +1761,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "100 * max by (node) (rate(node_disk_io_time_seconds_total{device!~\"(loop|ram|dm-|md|zram).*|mmcblk[0-9]+boot.*\", node=~\"$node\"}[$__rate_interval]))",
+                        "expr": "100 * max by (node) (rate(node_disk_io_time_seconds_total{device!~\"(loop|ram|dm-|md|zram).*|mmcblk[0-9]+boot.*\", node=\"$node\"}[$__rate_interval]))",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -1944,7 +1944,7 @@
                       "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "expr": "max by (node) (node_thermal_zone_temp{type=\"cpu-thermal\", node=~\"$node\"})",
+                        "expr": "max by (node) (node_thermal_zone_temp{type=\"cpu-thermal\", node=\"$node\"})",
                         "legendFormat": "{{node}}"
                       },
                       "version": "v0"
@@ -2342,21 +2342,16 @@
       {
         "kind": "QueryVariable",
         "spec": {
-          "allValue": ".*",
           "allowCustomValue": true,
           "current": {
-            "text": [
-              "All"
-            ],
-            "value": [
-              "$__all"
-            ]
+            "text": "cm5-wk-01",
+            "value": "cm5-wk-01"
           },
           "definition": "label_values(node_uname_info, node)",
           "hide": "dontHide",
-          "includeAll": true,
+          "includeAll": false,
           "label": "Node",
-          "multi": true,
+          "multi": false,
           "name": "node",
           "options": [],
           "query": {
@@ -2377,130 +2372,6 @@
           "regexApplyTo": "value",
           "skipUrlSync": false,
           "sort": "alphabeticalAsc"
-        }
-      },
-      {
-        "kind": "CustomVariable",
-        "spec": {
-          "allValue": ".*",
-          "allowCustomValue": true,
-          "current": {
-            "text": [
-              "All"
-            ],
-            "value": [
-              "$__all"
-            ]
-          },
-          "hide": "dontHide",
-          "includeAll": true,
-          "label": "Severity",
-          "multi": true,
-          "name": "severity",
-          "options": [
-            {
-              "selected": false,
-              "text": "emerg",
-              "value": "emerg"
-            },
-            {
-              "selected": false,
-              "text": "alert",
-              "value": "alert"
-            },
-            {
-              "selected": false,
-              "text": "crit",
-              "value": "crit"
-            },
-            {
-              "selected": false,
-              "text": "err",
-              "value": "err"
-            },
-            {
-              "selected": false,
-              "text": "warning",
-              "value": "warning"
-            },
-            {
-              "selected": false,
-              "text": "notice",
-              "value": "notice"
-            },
-            {
-              "selected": false,
-              "text": "info",
-              "value": "info"
-            },
-            {
-              "selected": false,
-              "text": "debug",
-              "value": "debug"
-            }
-          ],
-          "query": "emerg : emerg,alert : alert,crit : crit,err : err,warning : warning,notice : notice,info : info,debug : debug",
-          "skipUrlSync": false,
-          "valuesFormat": "csv"
-        }
-      },
-      {
-        "kind": "CustomVariable",
-        "spec": {
-          "allValue": ".*",
-          "allowCustomValue": true,
-          "current": {
-            "text": [
-              "All"
-            ],
-            "value": [
-              "$__all"
-            ]
-          },
-          "hide": "dontHide",
-          "includeAll": true,
-          "label": "Source",
-          "multi": true,
-          "name": "facility",
-          "options": [
-            {
-              "selected": false,
-              "text": "Kernel",
-              "value": "kern"
-            },
-            {
-              "selected": false,
-              "text": "Userspace",
-              "value": "user"
-            },
-            {
-              "selected": false,
-              "text": "Daemon",
-              "value": "daemon"
-            },
-            {
-              "selected": false,
-              "text": "Syslog",
-              "value": "syslog"
-            }
-          ],
-          "query": "Kernel : kern,Userspace : user,Daemon : daemon,Syslog : syslog",
-          "skipUrlSync": false,
-          "valuesFormat": "csv"
-        }
-      },
-      {
-        "kind": "TextVariable",
-        "spec": {
-          "current": {
-            "text": "",
-            "value": ""
-          },
-          "hide": "dontHide",
-          "label": "Search (regex)",
-          "name": "search",
-          "query": "",
-          "skipUrlSync": false
         }
       }
     ]
