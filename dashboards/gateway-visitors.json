@@ -1,0 +1,1025 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Envoy access logs from the Cilium Gateways, GeoIP-enriched by fluent-bit. IP geolocation by DB-IP (https://db-ip.com), CC BY 4.0.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [
+    {
+      "icon": "info",
+      "targetBlank": true,
+      "title": "IP geolocation by DB-IP",
+      "type": "link",
+      "url": "https://db-ip.com"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" [$__range]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "count(sum by (client_ip) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Unique clients",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "count(sum by (geo_country_code) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat != \"\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Countries",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" | response_code >= 400 [$__range])) / sum(count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" [$__range]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Error responses (4xx/5xx)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Markers sized by request count. IP geolocation by DB-IP (https://db-ip.com), CC BY 4.0. LAN clients have no location and are not shown.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 5,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "blue"
+                },
+                "opacity": 0.6,
+                "size": {
+                  "field": "Requests",
+                  "fixed": 6,
+                  "max": 30,
+                  "min": 4
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "latitude": "geo_lat",
+              "longitude": "geo_lon",
+              "mode": "coords"
+            },
+            "name": "Requests",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "id": "zero",
+          "lat": 25,
+          "lon": 10,
+          "zoom": 1.6
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (geo_country, geo_city, geo_lat, geo_lon) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat != \"\" [$__range]))",
+          "format": "table",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Where requests come from",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "geo_lat"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "geo_lon"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Requests",
+              "Value #A": "Requests",
+              "geo_city": "City",
+              "geo_country": "Country"
+            }
+          }
+        }
+      ],
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisGridShow": false,
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "lineWidth": 0
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "tooltip": {
+          "mode": "single"
+        },
+        "xField": "Country"
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (geo_country) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat != \"\" [$__range])))",
+          "format": "table",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Top countries",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Requests",
+              "Value #A": "Requests",
+              "geo_country": "Country"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Requests"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 16,
+        "x": 8,
+        "y": 18
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "expr": "topk(20, sum by (client_ip, geo_country, geo_city) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat != \"\" [$__range])))",
+          "format": "table",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Top clients",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "client_ip": 0,
+              "geo_city": 2,
+              "geo_country": 1
+            },
+            "renameByName": {
+              "Value": "Requests",
+              "Value #A": "Requests",
+              "client_ip": "Client IP",
+              "geo_city": "City",
+              "geo_country": "Country"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Requests"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "lineWidth": 2,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (authority) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" [$__auto]))",
+          "legendFormat": "{{authority}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests per host",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "3xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "1xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "no response"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (status) (count_over_time({namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" | label_format status=`{{ if eq .response_code \"0\" }}no response{{ else }}{{ substr 0 1 .response_code }}xx{{ end }}` [$__auto]))",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Responses by status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "expr": "{namespace=\"kube-system\", container=\"cilium-envoy\"} |= \"client_ip\" | json | gateway=~\"gateway/(${gateway:regex})\" | user_agent !~ \"(Blackbox-Exporter|kube-probe|mcp-grafana).*\" | geo_lat=~\"$clients\" | line_format `{{ .response_code }}  {{ .method }} {{ .authority }}{{ .path }}  ·  {{ .client_ip }} {{ .geo_country_code }} {{ .geo_city }}  ·  {{ .user_agent }}`",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent requests",
+      "type": "logs"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 11,
+      "panels": [],
+      "title": "Authentik sign-ins",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Authentik `login_failed` events. Independent of the Gateway/Clients variables; location and network come from Authentik's own GeoIP.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 48
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"authentik\", container=\"server\"} |= \"authentik.events.models\" | json | action=\"login_failed\" [$__range])) or vector(0)",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed logins",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 48
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"authentik\", container=\"server\"} |= \"authentik.events.models\" | json | action=\"login\" [$__range])) or vector(0)",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Successful logins",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 48
+      },
+      "id": 14,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "count(sum by (client_ip) (count_over_time({namespace=\"authentik\", container=\"server\"} |= \"authentik.events.models\" | json | action=\"login_failed\" [$__range]))) or vector(0)",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "IPs with failed logins",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "login"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Successful"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "login_failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Failed"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 52
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (action) (count_over_time({namespace=\"authentik\", container=\"server\"} |= \"authentik.events.models\" | json | action=~\"login|login_failed\" [$__auto]))",
+          "legendFormat": "{{action}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Logins over time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 52
+      },
+      "id": 16,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "expr": "sum by (client_ip, context_username, context_geo_country, context_asn_as_org) (count_over_time({namespace=\"authentik\", container=\"server\"} |= \"authentik.events.models\" | json | action=\"login_failed\" [$__range]))",
+          "format": "table",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed logins by client",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "client_ip": 0,
+              "context_asn_as_org": 3,
+              "context_geo_country": 2,
+              "context_username": 1
+            },
+            "renameByName": {
+              "Value": "Failures",
+              "Value #A": "Failures",
+              "client_ip": "Client IP",
+              "context_asn_as_org": "Network",
+              "context_geo_country": "Country",
+              "context_username": "Username tried"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Failures"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 42,
+  "tags": [
+    "gateway"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": [
+            "public"
+          ],
+          "value": [
+            "public"
+          ]
+        },
+        "includeAll": false,
+        "label": "Gateway",
+        "multi": true,
+        "name": "gateway",
+        "options": [],
+        "query": "public,private",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "External",
+          "value": ".+"
+        },
+        "includeAll": false,
+        "label": "Clients",
+        "multi": false,
+        "name": "clients",
+        "options": [],
+        "query": "External : .+,Everyone : .*",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Gateway visitors",
+  "uid": "gateway-visitors",
+  "weekStart": ""
+}
