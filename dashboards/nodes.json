@@ -1059,7 +1059,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Highest PWM duty cycle among the selected nodes. rpi4b-wk-01 has no fan.",
+      "description": "Highest PWM duty cycle among the selected nodes. pi4-wk-01 has no fan.",
       "fieldConfig": {
         "defaults": {
           "color": {
